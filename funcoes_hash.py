@@ -21,7 +21,7 @@ class Node:
         self.value = value
         self.prox = None
 
-class ListaLigada:
+class HashListaLigada:
     '''Coloca pro metodo insert retornar True se for inserido 
     um novo elemento ou False se for apenas mudado o valor da
     chave'''
@@ -131,19 +131,24 @@ def montar_HashTable(hashtable: HashTable, array, funcao):
         #inserir elemento cuja chave é a palavra e valor é o index
         hashtable.put(n, i, funcao)
 
+'''Maioria apenas testes no main'''
 if __name__ == '__main__':
     #letras do alfabeto
     letras = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
     nomes = carregar_nomes("alunosED_2026.txt", por_linha = True)
 
-    #Usando a primeira letra e M = 26
+    #cria a hashtable com o M
     ht_1L = HashTable(26)
     ht_17 = HashTable(17)
+    
+    #monta ela com base em uma array e a funcao escolhida
     montar_HashTable(ht_1L, nomes, "hash_nativa")
     
     clara_dos_anjos = carregar_nomes("clara-dos-anjos.txt", por_linha = False)
     montar_HashTable(ht_17, clara_dos_anjos, "_hash")
 
+    #gera os graficos, para os que exige o alfabeto usa o 'letras'
+    #para os outros gera uma lista com a quantidade de itens do balde
     gerar_histograma(letras, ht_1L)
     gerar_histograma([i for i in range(1, 17 + 1)], ht_17)
     #gerar_histograma([i for i in range(17)], ht_classe_17)
