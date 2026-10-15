@@ -1,19 +1,41 @@
 import re
 import matplotlib.pyplot as plt
 
-def carregar_nomes(arquivo):
+def carregar_nomes(arquivo, por_linha=True):
     with open(arquivo, mode='r', encoding="utf-8") as f:
         texto = f.read().lower()
-        nomes = re.split(r'[,.;:/—!?()" ]+', texto)
+        if por_linha:
+            arg_r = r'[@,.;:/—!?()\n\ufeff–"]+'
+        else:
+            arg_r = r'[@,.;:/—!?()\n\ufeff– "]+'
+            
+        nomes = re.split(arg_r, texto)
+        if nomes[0] == '':
+            nomes = nomes[1:-1]
 
     return nomes
+
+class Node:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.prox = None
+
+class ListaLigada:
+    '''Coloca pro metodo insert retornar True se for inserido 
+    um novo elemento ou False se for apenas mudado o valor da
+    chave'''
+
+    '''Coloca um atributo que diz a quantidade de elementos na lista'''
+    pass
+
 
 class HashTable: 
     def __init__(self, M): 
         self.M = M 
         self.n = 0 
         self.table = [None] * M 
- 
+
     #funcao hash discutida em sala de aula 
     def _hash(self, key): 
         h = 0
@@ -24,73 +46,105 @@ class HashTable:
     def hash_primeira_letra(self, key):
         return (ord(key[0]) - ord('a')) % self.M
 
-def ht_com_funcao_classe(M, palavras):
-    ht = HashTable(M)
-    for n in palavras:
-        valor_hash = ht._hash(n)
-        if ht.table[valor_hash] == None:
-            ht.table[valor_hash] = []
+    def hash_nativa(self, key):
+        return hash(key) % self.M
 
-        if n not in ht.table[valor_hash]:
-            ht.table[valor_hash].append(n)
-            ht.n += 1
+    def escolher_hash(self, key, funcao):
+        if funcao == '_hash':
+            valor_hash = self._hash(key)
+        elif funcao == 'hash_primeira_letra':
+            valor_hash = self.hash_primeira_letra(key)
+        elif funcao == 'hash_nativa':
+            valor_hash = self.hash_nativa(key)
 
-    return ht
+        return valor_hash
 
+    def put(self, key, value, funcao):
+        novo_no = Node(key, value)
+        valor_hash = self.escolher_hash(key, funcao)
+
+        if self.table[valor_hash].insert(novo_no):
+            self.n += 1
+        
+        '''Teste
+        aux: Node = self.table[valor_hash]
+        if aux == None:
+            self.table[valor_hash] = Node(key, value)
+
+        else:
+            while aux != None:
+                if aux.key == key:
+                    aux.value = value
+                    return
+
+                if aux.prox == None:
+                    aux.prox = Node(key, value)
+                    break
+
+                aux = aux.prox 
+
+        self.table[valor_hash].quant += 1
+        self.n += 1
+        '''
+
+    def get(self, key, funcao):
+        valor_hash = self.escolher_hash(key, funcao)
+
+        item = self.table[valor_hash].get(key)
+
+        if item:
+            return item
+        else:
+            return None
+        
+    def isEmpty(self):
+        return self.n == 0
+    
 def gerar_histograma(eixo_x, ht: HashTable):
     alpha = ht.n/ht.M
     margem_de_erro = 0.10
 
-    colisoes = [len(ht.table[i]) for i in range(ht.M)]
+    colisoes = [ht.table[i].quant if ht.table[i] else 0 for i in range(ht.M) ]
 
-    plt.figure(figsize=(70, 30))
     barras = plt.bar(eixo_x, colisoes)
+    plt.bar_label(barras, colisoes)
+
     plt.xticks(eixo_x)
-    plt.axhline(y=alpha, color='black')
-    plt.axhline(y=alpha*(1 + margem_de_erro), color='red')
-    plt.axhline(y=alpha*(1 - margem_de_erro), color='red')
+
+    plt.axhline(y=alpha, color='black', linestyle='dashed', label="fator de carga")
+    plt.axhline(y=alpha*(1 + margem_de_erro), color='red', linestyle='dashed')
+    plt.axhline(y=alpha*(1 - margem_de_erro), color='red', linestyle='dashed', alpha=1)
+    
+    eixo_y = [i for i in range(0, max(colisoes) + 1, max(colisoes)//10)]
+    eixo_y.append(alpha)
+    eixo_y.sort()
+    plt.yticks(eixo_y)
+
+    #plt.grid(axis='y', linestyle="dashed")
+    plt.tight_layout()
+    plt.legend()
     plt.show()
+
+def montar_HashTable(hashtable: HashTable, array, funcao):
+    for i in range(len(array)):
+        n = array[i]
+        #inserir elemento cuja chave é a palavra e valor é o index
+        hashtable.put(n, i, funcao)
 
 if __name__ == '__main__':
     #letras do alfabeto
     letras = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
-    nomes = carregar_nomes("alunosED_2026.txt")
+    nomes = carregar_nomes("alunosED_2026.txt", por_linha = True)
 
     #Usando a primeira letra e M = 26
     ht_1L = HashTable(26)
-
-    for n in nomes:
-        valor_hash = ht_1L.hash_primeira_letra(n)
-        if ht_1L.table[valor_hash] == None:
-            ht_1L.table[valor_hash] = []
-
-        ht_1L.table[valor_hash].append(n)
-        ht_1L.n += 1
-
-    #Usando a hash do python e M = 26
-    ht_nativa = HashTable(26)
-
-    for n in nomes:
-        valor_hash = hash(n) % 26
-        if ht_nativa.table[valor_hash] == None:
-            ht_nativa.table[valor_hash] = []
-
-        ht_nativa.table[valor_hash].append(n)
-        ht_nativa.n += 1
-
-    clara_dos_anjos = carregar_nomes("clara-dos-anjos.txt")
-
-    #Usando a hash da classe e M = 17, 43, 97
-    ht_classe_17 = ht_com_funcao_classe(17, clara_dos_anjos)
-    ht_classe_43 = ht_com_funcao_classe(43, clara_dos_anjos)
-    ht_classe_97 = ht_com_funcao_classe(97, clara_dos_anjos)
-
-    #Usando a hash da classe e M = 16, 40, 100
-    ht_classe_16 = ht_com_funcao_classe(16, clara_dos_anjos)
-    ht_classe_40 = ht_com_funcao_classe(40, clara_dos_anjos)
-    ht_classe_100 = ht_com_funcao_classe(100, clara_dos_anjos)
+    ht_17 = HashTable(17)
+    montar_HashTable(ht_1L, nomes, "hash_nativa")
+    
+    clara_dos_anjos = carregar_nomes("clara-dos-anjos.txt", por_linha = False)
+    montar_HashTable(ht_17, clara_dos_anjos, "_hash")
 
     gerar_histograma(letras, ht_1L)
-    gerar_histograma(letras, ht_nativa)
-    gerar_histograma([i for i in range(17)], ht_classe_17)
-    gerar_histograma([i for i in range(43)], ht_classe_43)
+    gerar_histograma([i for i in range(1, 17 + 1)], ht_17)
+    #gerar_histograma([i for i in range(17)], ht_classe_17)
+    #gerar_histograma([i for i in range(43)], ht_classe_43)
