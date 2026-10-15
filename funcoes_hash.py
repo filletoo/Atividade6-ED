@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 def carregar_nomes(arquivo, por_linha=True):
     with open(arquivo, mode='r', encoding="utf-8") as f:
         texto = f.read().lower()
+
         if por_linha:
             arg_r = r'[@,.;:/—!?()\n\ufeff–"]+'
         else:
@@ -140,16 +141,18 @@ if __name__ == '__main__':
     #cria a hashtable com o M
     ht_1L = HashTable(26)
     ht_17 = HashTable(17)
-    
+
     #monta ela com base em uma array e a funcao escolhida
-    montar_HashTable(ht_1L, nomes, "hash_nativa")
+    montar_HashTable(ht_1L, nomes, "hash_primeira_letra")
     
     clara_dos_anjos = carregar_nomes("clara-dos-anjos.txt", por_linha = False)
     montar_HashTable(ht_17, clara_dos_anjos, "_hash")
 
     #gera os graficos, para os que exige o alfabeto usa o 'letras'
     #para os outros gera uma lista com a quantidade de itens do balde
+    
     gerar_histograma(letras, ht_1L)
+    
     gerar_histograma([i for i in range(1, 17 + 1)], ht_17)
     #gerar_histograma([i for i in range(17)], ht_classe_17)
     #gerar_histograma([i for i in range(43)], ht_classe_43)
