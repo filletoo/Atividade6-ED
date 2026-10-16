@@ -6,13 +6,15 @@ def carregar_nomes(arquivo, por_linha=True):
         texto = f.read().lower()
 
         if por_linha:
-            arg_r = r'[@,.;:/—!?()\n\ufeff–"]+'
+            arg_r = r'[@,.;:/—!?()\ufeff\n–\-]+'
         else:
-            arg_r = r'[@,.;:/—!?()\n\ufeff– "]+'
+            arg_r = r'[@,.;:/—!?()\ufeff\n–\- ]+'
             
         nomes = re.split(arg_r, texto)
         if nomes[0] == '':
             nomes = nomes[1:-1]
+        if nomes[-1] == '':
+            nomes = nomes[:-2]
 
     return nomes
 
@@ -21,15 +23,32 @@ class Node:
         self.key = key
         self.value = value
         self.prox = None
-
+    
 class HashListaLigada:
-    '''Coloca pro metodo insert retornar True se for inserido 
-    um novo elemento ou False se for apenas mudado o valor da
-    chave'''
+    def __init__(self):
+        self.inicio = None
+        self.quant = 0
 
-    '''Coloca um atributo que diz a quantidade de elementos na lista'''
-    pass
+    def insert(self, novo_no):
+        atual = self.inicio
 
+        while atual is not None:
+            if atual.key == novo_no.key:
+                atual.value = novo_no.value
+                return False
+            atual = atual.prox
+        novo_no.prox = self.inicio
+        self.inicio = novo_no
+        self.quant += 1
+        return True
+    
+    def get(self, key):
+        atual = self.inicio
+        while atual is not None:
+            if atual.key == key:
+                return atual.value
+            atual = atual.prox
+        return None
 
 class HashTable: 
     def __init__(self, M): 
@@ -64,40 +83,21 @@ class HashTable:
         novo_no = Node(key, value)
         valor_hash = self.escolher_hash(key, funcao)
 
+        if self.table[valor_hash] == None:
+            self.table[valor_hash] = HashListaLigada()
+
         if self.table[valor_hash].insert(novo_no):
             self.n += 1
         
-        '''Teste
-        aux: Node = self.table[valor_hash]
-        if aux == None:
-            self.table[valor_hash] = Node(key, value)
-
-        else:
-            while aux != None:
-                if aux.key == key:
-                    aux.value = value
-                    return
-
-                if aux.prox == None:
-                    aux.prox = Node(key, value)
-                    break
-
-                aux = aux.prox 
-
-        self.table[valor_hash].quant += 1
-        self.n += 1
-        '''
-
     def get(self, key, funcao):
         valor_hash = self.escolher_hash(key, funcao)
 
-        item = self.table[valor_hash].get(key)
-
-        if item:
-            return item
-        else:
+        lista = self.table[valor_hash]
+        if lista == None: 
             return None
-        
+
+        return self.table[valor_hash].get(key, funcao)
+
     def isEmpty(self):
         return self.n == 0
     
@@ -150,9 +150,9 @@ if __name__ == '__main__':
 
     #gera os graficos, para os que exige o alfabeto usa o 'letras'
     #para os outros gera uma lista com a quantidade de itens do balde
-    
+    print(ht_1L.get("xayra daviah", "hash_primeira_letra"))
     gerar_histograma(letras, ht_1L)
     
-    gerar_histograma([i for i in range(1, 17 + 1)], ht_17)
+    #gerar_histograma([i for i in range(1, 17 + 1)], ht_17)
     #gerar_histograma([i for i in range(17)], ht_classe_17)
     #gerar_histograma([i for i in range(43)], ht_classe_43)
