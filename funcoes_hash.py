@@ -1,20 +1,7 @@
 import re
 import matplotlib.pyplot as plt
 
-def carregar_nomes(arquivo, por_linha=True):
-    with open(arquivo, mode='r', encoding="utf-8") as f:
-        texto = f.read().lower()
-
-        if por_linha:
-            arg_r = r'[@,;:/—!?"()\ufeff\n\-—]+'
-        else:
-            arg_r = r'[@,.;:/—!?"()\ufeff\n–\-—\t ]+'
-            
-        nomes = re.split(arg_r, texto)
-        for _ in range(nomes.count('')):
-            nomes.remove('')
-
-    return nomes
+ALFABETO = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 class Node:
     def __init__(self, key, value):
@@ -101,22 +88,25 @@ class HashTable:
 
     def isEmpty(self):
         return self.n == 0
-    
+
 def gerar_histograma(eixo_x, ht: HashTable, nome_do_grafico):
     alpha = ht.n/ht.M
-    margem_de_erro = 0.05
 
-    colisoes = [ht.table[i].quant if ht.table[i] else 0 for i in range(ht.M) ]
+    colisoes = [ht.table[i].quant if ht.table[i] else 0 for i in range(ht.M)]
 
+    margem_de_erro = 2*((alpha)**(1/2))
     barras = plt.bar(eixo_x, colisoes)
-    plt.bar_label(barras, colisoes)
+    plt.bar_label(barras, colisoes, padding=2, fontsize=8)
+
+    if len(eixo_x) >= 80:
+        eixo_x = eixo_x[::2]
 
     plt.xticks(eixo_x)
     plt.title(nome_do_grafico)
 
     plt.axhline(y=alpha, color='darkgray', linestyle='dashed', label="Fator de carga")
-    plt.axhline(y=alpha*(1 + margem_de_erro), color='red', linestyle='dashed', label=f"Margem de erro ({margem_de_erro*100}%)")
-    plt.axhline(y=alpha*(1 - margem_de_erro), color='red', linestyle='dashed', alpha=1)
+    plt.axhline(y=alpha + margem_de_erro, color='red', linestyle='dashed', label=f"Margem de erro ({margem_de_erro/alpha*100:.2f}%)")
+    plt.axhline(y=alpha - margem_de_erro, color='red', linestyle='dashed')
 
     #para caso tente ser gerado o histograma de uma HashTable sem item
     if ht.n != 0: 
@@ -149,27 +139,77 @@ def montar_HashTable(hashtable: HashTable, array, funcao):
         #inserir elemento cuja chave é a palavra e valor é o index
         hashtable.put(n, i, funcao)
 
-'''Maioria apenas testes no main'''
-if __name__ == '__main__':
-    #letras do alfabeto
-    letras = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
-    nomes = carregar_nomes("alunosED_2026.txt", por_linha = True)
+# Arquivo, leitura por linha, nome da função hash no arquivo original e valores de M.
+def carregar_entradas(caminho, por_linha):
+    """Faz a leitura sem perder as últimas entradas do arquivo.
+    """
+    with open(caminho, mode='r', encoding='utf-8') as f:
+        texto = f.read().lower().strip()
+        if por_linha:
+            return [linha.strip() for linha in texto.splitlines() if linha.strip()]
 
-    #cria a hashtable com o M
-    ht_1L = HashTable(26)
-    ht_17 = HashTable(17)
+        partes = re.split(r"[@,.;:/—!?()\n–\- ]+", texto)
+        return [palavra.strip() for palavra in partes if palavra.strip()]
 
-    #monta ela com base em uma array e a funcao escolhida
-    montar_HashTable(ht_1L, nomes, "hash_nativa")
-    
-    clara_dos_anjos = carregar_nomes("clara-dos-anjos.txt", por_linha = False)
-    montar_HashTable(ht_17, clara_dos_anjos, "_hash")
+def mostrar_menu():
+    print("\n========== TABELA HASH ==========")
+    print("1 - Arquivo 'alunosED_2026.txt': Primeira letra (M = 26)")
+    print("2 - Arquivo 'alunosED_2026.txt': Hash nativa (M = 26)")
+    print("3 - Arquivo 'clara-dos-anjos.txt': Hash da classe (M = 17, 43, 97)")
+    print("4 - Arquivo 'clara-dos-anjos.txt': Hash da classe (M = 16, 40, 100)")
+    print("0 - Sair")
 
-    #gera os graficos, para os que exige o alfabeto usa o 'letras'
-    #para os outros gera uma lista com a quantidade de itens do balde
-    #print(ht_1L.get("yuri da silva barbosa", "hash_primeira_letra"))
-    gerar_histograma(letras, ht_1L, "Hash primeira letra. M = 26")
-    
-    gerar_histograma([i for i in range(1, 17 + 1)], ht_17, "Hash da classe. M = 17")
-    #gerar_histograma([i for i in range(17)], ht_classe_17)
-    #gerar_histograma([i for i in range(43)], ht_classe_43)
+def main():
+    nomes = carregar_entradas('alunosED_2026.txt', True)
+    clara_dos_anjos = carregar_entradas('clara-dos-anjos.txt', False)
+
+    while True:
+        mostrar_menu()
+        opcao = input("Escolha uma opção: ").strip()
+
+        if opcao == '1':
+            ht = HashTable(26)
+            montar_HashTable(ht, nomes, funcao="hash_primeira_letra")
+            gerar_histograma(ALFABETO, ht, "Hash primeira letra. M = 26")
+
+        elif opcao == '2':
+            ht = HashTable(26)
+            montar_HashTable(ht, nomes, funcao="hash_nativa")
+            gerar_histograma(ALFABETO, ht, "Hash nativa. M = 26")
+
+        elif opcao == '3':
+            numeros = [17, 43, 97]
+            
+            tabelas_hash = []
+            for i in numeros:
+                ht = HashTable(i)
+                montar_HashTable(ht, clara_dos_anjos, funcao="_hash")
+                tabelas_hash.append(ht)
+
+            for i in range(len(tabelas_hash)):
+                M = numeros[i]
+                ht = tabelas_hash[i]
+                gerar_histograma([j for j in range(0,M)], ht, f"Hash da classe. M = {M}")
+
+        elif opcao == '4':
+            numeros = [16, 40, 100]
+            tabelas_hash = []
+            for i in numeros:
+                ht = HashTable(i)
+                montar_HashTable(ht, clara_dos_anjos, funcao="_hash")
+                tabelas_hash.append(ht)
+
+            for i in range(len(tabelas_hash)):
+                M = numeros[i]
+                ht = tabelas_hash[i]
+                gerar_histograma([j for j in range(0,M)], ht, f"Hash da classe. M = {M}")
+        
+        elif opcao == "0":
+            print("Programa encerrado.")
+            break
+
+        else:
+            print("Opção inválida. Tente novamente.")
+
+if __name__ == "__main__":
+    main()
