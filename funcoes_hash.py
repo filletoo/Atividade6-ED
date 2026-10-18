@@ -112,7 +112,7 @@ def gerar_histograma(ht: HashTable, nome_do_grafico, eixo_x = None):
     plt.title(nome_do_grafico)
 
     plt.axhline(y=alpha, color="#3b3b3b", linestyle='dashed', label="Fator de carga")
-    plt.axhline(y=alpha + margem_de_erro, color='red', linestyle='dashed', label=f"Margem de erro ({margem_de_erro/alpha*100:.2f}%)")
+    plt.axhline(y=alpha + margem_de_erro, color='red', linestyle='dashed', label=f"Margem de erro")
     plt.axhline(y=alpha - margem_de_erro, color='red', linestyle='dashed')
 
     #para caso tente ser gerado o histograma de uma HashTable sem item
