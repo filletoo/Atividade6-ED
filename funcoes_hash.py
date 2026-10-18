@@ -58,16 +58,19 @@ class HashTable:
         return hash(key) % self.M
 
     def escolher_hash(self, key, funcao):
+        valor_hash = None
         if funcao == '_hash':
             valor_hash = self._hash(key)
         elif funcao == 'hash_primeira_letra':
             valor_hash = self.hash_primeira_letra(key)
         elif funcao == 'hash_nativa':
             valor_hash = self.hash_nativa(key)
-
+    
         return valor_hash
 
     def put(self, key, value, funcao):
+        if key == None or value == None: return
+
         novo_no = Node(key, value)
         valor_hash = self.escolher_hash(key, funcao)
 
