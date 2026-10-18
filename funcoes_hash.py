@@ -91,6 +91,7 @@ class HashTable:
 
 def gerar_histograma(ht: HashTable, nome_do_grafico, eixo_x = None):
     alpha = ht.n/ht.M
+    plt.figure(figsize=(1000, 480, 'px'))
     if not eixo_x:
         eixo_x = [i for i in range(ht.M)]
     
@@ -103,6 +104,7 @@ def gerar_histograma(ht: HashTable, nome_do_grafico, eixo_x = None):
     if len(eixo_x) >= 80:
         eixo_x = eixo_x[::2]
 
+    
     plt.xticks(eixo_x)
     plt.title(nome_do_grafico)
 
@@ -218,7 +220,7 @@ def main():
 
         elif opcao == '5':
             while True:
-                arquivo = input("- Arquivo do qual deseja montar a tabela hash: ").strip()
+                arquivo = input("- Arquivo do qual deseja montar a tabela hash (leitura por palavra):\n ").strip()
                 try:
                     dados = carregar_entradas(arquivo, False)
                     break
