@@ -2,7 +2,7 @@ import re
 import matplotlib.pyplot as plt
 
 ALFABETO = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
+funcoes_hash = ["_hash", "hash_primeira_letra", "hash_nativa"]
 class Node:
     def __init__(self, key, value):
         self.key = key
@@ -89,9 +89,11 @@ class HashTable:
     def isEmpty(self):
         return self.n == 0
 
-def gerar_histograma(eixo_x, ht: HashTable, nome_do_grafico):
+def gerar_histograma(ht: HashTable, nome_do_grafico, eixo_x = None):
     alpha = ht.n/ht.M
-
+    if not eixo_x:
+        eixo_x = [i for i in range(ht.M)]
+    
     colisoes = [ht.table[i].quant if ht.table[i] else 0 for i in range(ht.M)]
 
     margem_de_erro = 2*((alpha)**(1/2))
@@ -104,7 +106,7 @@ def gerar_histograma(eixo_x, ht: HashTable, nome_do_grafico):
     plt.xticks(eixo_x)
     plt.title(nome_do_grafico)
 
-    plt.axhline(y=alpha, color='darkgray', linestyle='dashed', label="Fator de carga")
+    plt.axhline(y=alpha, color="#3b3b3b", linestyle='dashed', label="Fator de carga")
     plt.axhline(y=alpha + margem_de_erro, color='red', linestyle='dashed', label=f"Margem de erro ({margem_de_erro/alpha*100:.2f}%)")
     plt.axhline(y=alpha - margem_de_erro, color='red', linestyle='dashed')
 
@@ -152,11 +154,12 @@ def carregar_entradas(caminho, por_linha):
         return [palavra.strip() for palavra in partes if palavra.strip()]
 
 def mostrar_menu():
-    print("\n========== TABELA HASH ==========")
+    print("\n========== EXPERIMENTOS ==========")
     print("1 - Arquivo 'alunosED_2026.txt': Primeira letra (M = 26)")
     print("2 - Arquivo 'alunosED_2026.txt': Hash nativa (M = 26)")
     print("3 - Arquivo 'clara-dos-anjos.txt': Hash da classe (M = 17, 43, 97)")
     print("4 - Arquivo 'clara-dos-anjos.txt': Hash da classe (M = 16, 40, 100)")
+    print("5 - Experimento personalizado")
     print("0 - Sair")
 
 def main():
@@ -170,12 +173,12 @@ def main():
         if opcao == '1':
             ht = HashTable(26)
             montar_HashTable(ht, nomes, funcao="hash_primeira_letra")
-            gerar_histograma(ALFABETO, ht, "Hash primeira letra. M = 26")
+            gerar_histograma(ht, "'alunosED_2026.txt'. Hash primeira letra. M = 26", ALFABETO)
 
         elif opcao == '2':
             ht = HashTable(26)
             montar_HashTable(ht, nomes, funcao="hash_nativa")
-            gerar_histograma(ALFABETO, ht, "Hash nativa. M = 26")
+            gerar_histograma(ht, "'alunosED_2026.txt'. Hash nativa. M = 26", ALFABETO)
 
         elif opcao == '3':
             numeros = [17, 43, 97]
@@ -189,7 +192,7 @@ def main():
             for i in range(len(tabelas_hash)):
                 M = numeros[i]
                 ht = tabelas_hash[i]
-                gerar_histograma([j for j in range(0,M)], ht, f"Hash da classe. M = {M}")
+                gerar_histograma(ht, f"'clara-dos-anjos.txt'. Hash da classe. M = {M}")
 
         elif opcao == '4':
             numeros = [16, 40, 100]
@@ -202,8 +205,45 @@ def main():
             for i in range(len(tabelas_hash)):
                 M = numeros[i]
                 ht = tabelas_hash[i]
-                gerar_histograma([j for j in range(0,M)], ht, f"Hash da classe. M = {M}")
-        
+                gerar_histograma(ht, f"'clara-dos-anjos.txt'. Hash da classe. M = {M}")
+
+        elif opcao == '5':
+            while True:
+                arquivo = input("- Arquivo do qual deseja montar a tabela hash: ").strip()
+                try:
+                    dados = carregar_entradas(arquivo, False)
+                    break
+                except FileNotFoundError:
+                    print("O arquivo não pode ser encontrado.\n")
+
+            while True:
+                try:
+                    M = int(input("- M: "))
+                    if M <= 0:
+                        print("M deve ser positivo.\n")
+                    else:
+                        break
+                except ValueError:
+                    print("M deve ser um número inteiro.\n")
+
+            ht = HashTable(M)
+            while True:
+                opcao = input('''1 - Hash da classe\n2 - Hash da primeira letra\n3 - Hash nativa\nOpcao: ''')
+                if opcao == '1':
+                    funcao = "_hash"
+                elif opcao == '2':
+                    funcao = "hash_primeira_letra"
+                elif opcao == '3':
+                    funcao = "hash_nativa"
+                else:
+                    print("Escolha uma opção válida")
+                    continue
+
+                break
+
+            montar_HashTable(ht, dados, funcao)
+            gerar_histograma(ht, f"'{arquivo}'. {funcao}. M = {M}")
+
         elif opcao == "0":
             print("Programa encerrado.")
             break
