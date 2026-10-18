@@ -245,7 +245,7 @@ def main():
                 elif opcao == '3':
                     funcao = "hash_nativa"
                 else:
-                    print("Escolha uma opção válida")
+                    print("Escolha uma opção válida.\n")
                     continue
 
                 break
