@@ -163,9 +163,18 @@ def mostrar_menu():
     print("0 - Sair")
 
 def main():
-    nomes = carregar_entradas('alunosED_2026.txt', True)
-    clara_dos_anjos = carregar_entradas('clara-dos-anjos.txt', False)
+    try:
+        nomes = carregar_entradas('alunosED_2026.txt', True)
+    except FileNotFoundError:
+        print("'alunosED_2026.txt'não pôde ser encontrado.")
+        return
 
+    try:
+        clara_dos_anjos = carregar_entradas('clara-dos-anjos.txt', False)
+    except FileNotFoundError:
+        print("'clara-dos-anjos.txt' não pôde ser encontrado.")
+        return 
+    
     while True:
         mostrar_menu()
         opcao = input("Escolha uma opção: ").strip()
