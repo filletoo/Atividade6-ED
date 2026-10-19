@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 ALFABETO = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 funcoes_hash = ["_hash", "hash_primeira_letra", "hash_nativa"]
+
 class Node:
     def __init__(self, key, value):
         self.key = key
@@ -107,7 +108,6 @@ def gerar_histograma(ht: HashTable, nome_do_grafico, eixo_x = None):
     if len(eixo_x) >= 80:
         eixo_x = eixo_x[::2]
 
-    
     plt.xticks(eixo_x)
     plt.title(nome_do_grafico)
 
